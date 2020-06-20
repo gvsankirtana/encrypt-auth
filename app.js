@@ -4,7 +4,7 @@ const express =  require("express");
 const bodyParser = require("body-parser");
 const ejs = require("ejs");
 const mongoose = require("mongoose");
-const encrypt = require("mongoose-encryption");
+const md5 = require("md5");
 const app = express();
 app.use(express.static("public"));
 app.set('view engine','ejs');
@@ -16,8 +16,8 @@ const userSchema = new mongoose.Schema({
     email:String,
     password: String
 });
-const secret = process.env.SECRET; 
-userSchema.plugin(encrypt, { secret:secret, encryptedFields: ['password'] });//to encrypt certain field
+//const secret = process.env.SECRET; 
+//userSchema.plugin(encrypt, { secret:secret, encryptedFields: ['password'] });//to encrypt certain field
 const User = new mongoose.model("User",userSchema);//the encryption is done before making a new user
 
 app.get("/",function(req,res){
@@ -26,9 +26,25 @@ app.get("/",function(req,res){
 app.get("/login",function(req,res){
     res.render("login");
 })
+app.get("/register",function(req,res){
+    res.render("register");
+})
+app.post("/register",function(req,res){
+    const newUser = new User({
+        email: req.body.username,
+        password: md5(req.body.password)
+    });
+    newUser.save(function(err){
+     if(err){
+         console.log(err);
+     }else{
+         res.render("secrets");
+     }
+    });
+})
 app.post("/login",function(req,res){
     const username = req.body.username;
-    const password = req.body.password;
+    const password = md5(req.body.password);
     User.findOne({email:username},function(err,foundUser){//here the password gets decrypt and then login fields get checked
       if(err){
           console.log(err);
@@ -42,22 +58,7 @@ app.post("/login",function(req,res){
       }
     })
 })
-app.get("/register",function(req,res){
-    res.render("register");
-})
-app.post("/register",function(req,res){
-    const newUser = new User({
-        email: req.body.username,
-        password: req.body.password
-    });
-    newUser.save(function(err){
-     if(err){
-         console.log(err);
-     }else{
-         res.render("secrets");
-     }
-    });
-})
-app.listen(3000,function(){
+
+app.listen(4000,function(){
     console.log("server running on port 3000");
 })
