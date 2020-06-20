@@ -15,9 +15,9 @@ const userSchema = new mongoose.Schema({
     email:String,
     password: String
 });
-const secret = "Thisisourlittlesecret";
-userSchema.plugin(encrypt, { secret:secret, encryptedFields: ['password'] });
-const User = new mongoose.model("User",userSchema);
+const secret = "Thisisourlittlesecret";//encrypt key 
+userSchema.plugin(encrypt, { secret:secret, encryptedFields: ['password'] });//to encrypt certain field
+const User = new mongoose.model("User",userSchema);//the encryption is done before making a new user
 
 app.get("/",function(req,res){
     res.render("home");
@@ -28,7 +28,7 @@ app.get("/login",function(req,res){
 app.post("/login",function(req,res){
     const username = req.body.username;
     const password = req.body.password;
-    User.findOne({email:username},function(err,foundUser){
+    User.findOne({email:username},function(err,foundUser){//here the password gets decrypt and then login fields get checked
       if(err){
           console.log(err);
       }
